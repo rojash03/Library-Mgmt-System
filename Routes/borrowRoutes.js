@@ -1,7 +1,7 @@
 import express from 'express';
 import { borrowBook, returnBook } from '../Controller/borrrowController.js';
 import { verifyBorrower, verifyLibrarian } from '../Controller/authController.js';
-import { getBorrowRecords } from '../Controller/borrrowController.js';
+import { getBorrowRecords, getBorrowRecordsById } from '../Controller/borrrowController.js';
 
 const router = express.Router();
 

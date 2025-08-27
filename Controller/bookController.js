@@ -1,13 +1,13 @@
 import experss from "express";
-import { book } from "../models/Book.js";
+import { Book } from "../models/Book.js";
 
 export const addBooks = async (req, res) => {
   try {
-    const { Title, Author, ISBN, Quantity, Available } = req.body;
-    if (!Title || !Author || !ISBN || !Quantity || !Available) {
+    const { title, author, isbn, quantity, available } = req.body;
+    if (!title || !author || !isbn || !quantity || !available) {
       return res.status(400).json({ message: "Please fill all fields" });
     }
-    const newBook = new book({ Title, Author, ISBN, Quantity, Available });
+    const newBook = new Book({ title, author, isbn, quantity, available });
     await newBook.save();
     res
       .status(200)
@@ -18,10 +18,9 @@ export const addBooks = async (req, res) => {
       .json({ message: "Error adding book", error: error.message });
   }
 };
-
 export const getAllBooks = async (req, res) => {
   try {
-    const books = await book.find();
+    const books = await Book.find();
     res.status(200).json({ message: "Books retrieved successfully", books });
   } catch (error) {
     res
@@ -33,15 +32,15 @@ export const getAllBooks = async (req, res) => {
 export const updateBook = async (req, res) => {
   try {
     const { id } = req.params;
-    const { Title, Author, ISBN, Quantity, Available } = req.body;
+    const { title, author, isbn, quantity, available } = req.body;
 
-    if (!Title || !Author || !ISBN || !Quantity || !Available) {
+    if (!title || !author || !isbn || !quantity || !available) {
       return res.status(400).json({ message: "Please fill all fields" });
     }
 
-    const updatedBook = await book.findByIdAndUpdate(
+    const updatedBook = await Book.findByIdAndUpdate(
       id,
-      { Title, Author, ISBN, Quantity, Available },
+      { title, author, isbn, quantity, available },
       { new: true }
     );
 
@@ -64,7 +63,7 @@ export const deleteBook = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedBook = await book.findByIdAndDelete(id);
+    const deletedBook = await Book.findByIdAndDelete(id);
     if (!deletedBook) {
       return res.status(404).json({ message: "Book not found" });
     }

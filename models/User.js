@@ -1,23 +1,23 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    Name: {
+    name: {
+        type: String,
+        required: true,
+    },
+    email: {
         type: String,
         required: true,
         unique: true
     },
-    Email: {
+    password: {
         type: String,
         required: true,
-        unique: true
-    },
-    Password: {
-        type: String,
-        required: true,
+        
         select: false,
         minlength: [8, 'Password must be at least 8 characters long']
     },
-    Role:{
+    role: {
         type: String,
         enum: ["borrower", "librarian"],
         default: 'borrower'

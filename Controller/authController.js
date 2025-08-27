@@ -1,14 +1,30 @@
 import express from "express";
-import { user } from "../models/User.js";
-
+import { User } from "../models/User.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { verifyToken } from "../Middleware/verifyToken.js"
 export const registerUser = async (req, res) => {
   try {
-    const { Name, Email, Password, Role } = req.body;
-    if (!Name || !Email || !Password) {
+    const { name, email, password, role } = req.body;
+
+    // Validate all fields, especially name
+    if (!name || !email || !password || !role) {
       return res.status(400).json({ message: "Please fill all fields" });
     }
-    const newUser = new user({ Name, Email, Password, Role });
+
+    // Check if user already exists by unique field (usually email)
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res
+        .status(409)
+        .json({ message: "User with this email already exists." });
+    }
+
+    const hashedPassword = bcrypt.hashSync(password, 10);
+
+    const newUser = new User({ name, email, password: hashedPassword, role });
     await newUser.save();
+
     res
       .status(201)
       .json({ message: "User registered successfully", user: newUser });
@@ -18,35 +34,40 @@ export const registerUser = async (req, res) => {
       .json({ message: "Error registering user", error: error.message });
   }
 };
+
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const userData = await User.findOne({
-      email,
-    }).select("+password");
-
-    if (!userData) {
-      return res.status(400).json({ message: "Invalid email" });
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
 
-    const Check = bcrypt.compareSync(password, userData.password);
+    const user = await User.findOne({ email }).select("+password");
+
+    if (!user || !user.password) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const Check = bcrypt.compareSync(password, user.password);
 
     if (!Check) {
-      return res.status(400).json({ message: "Invalid password" });
+      return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    const { password: pass, ...rest } = userData._doc;
+    const { password: pass, ...userdata } = user._doc;
 
     const token = jwt.sign(
       {
-        id: rest._id,
-        role: rest.role,
+        id: userdata._id,
+        role: userdata.role,
       },
       process.env.JWT
     );
 
-    return res.status(200).json({ token, data: rest });
+    return res.status(200).json({ token, data: userdata });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -54,21 +75,21 @@ export const loginUser = async (req, res) => {
 };
 
 export const verifyLibrarian = (req, res, next) => {
-    verifyToken(req, res, () => {
-        if(req.user.role === 'Librarian') {
-            next();
-        } else {
-            return res.status(401).json({ message: 'Access denied' });
-        }
-    });
-}
+  verifyToken(req, res, () => {
+    if (req.user.role === "librarian") {
+      next();
+    } else {
+      return res.status(401).json({ message: "Access denied" });
+    }
+  });
+};
 
 export const verifyBorrower = (req, res, next) => {
-    verifyToken(req, res, () => {
-        if(req.user.role === 'Borrower') {
-            next();
-        } else {
-            return res.status(401).json({ message: 'Access denied' });
-        }
-    });
-}
+  verifyToken(req, res, () => {
+    if (req.user.role === "borrower") {
+      next();
+    } else {
+      return res.status(401).json({ message: "Access denied" });
+    }
+  });
+};

@@ -4,6 +4,7 @@ import { Book } from "../models/Book.js";
 import { User } from "../models/User.js";
 
 export const borrowBook = async (req, res) => {
+    console.log("Received request body:", req.body);
   try {
     const { bookId } = req.body;
     if (!bookId) {
@@ -75,9 +76,9 @@ export const getBorrowRecords = async (req, res) => {
       if (book && user) {
         result.push({
           book: {
-            borrowerName: user.Name,
-            BorrowerTitle: book.title,
-            borrowedDate: record.borrowedDate,
+            borrowerName: user.name,
+            bookTitle: book.title,
+            borrowedDate: record.borrowDate,
             returnDate: record.returnDate ? "Returned" : "Not Returned",
           },
         });
@@ -99,32 +100,21 @@ export const getBorrowRecords = async (req, res) => {
 export const getBorrowRecordsById = async (req, res) => {
   try {
     const { userId } = req.params;
+
     if (!userId) {
       return res.status(400).json({ message: "Please provide userId" });
     }
-    const borrowRecords = await Borrow.find({ userId });
 
-    if (borrowRecords.length === 0) {
+    const borrowRecords = await Borrow.find({ userId })
+      .populate("bookId") 
+
+    if (!borrowRecords || borrowRecords.length === 0) {
       return res.status(404).json({ message: "No borrow records found" });
-    }
-
-    const result = [];
-    for (const record of borrowRecords) {
-      const book = await Book.findById(record.bookId);
-      if (book) {
-        result.push({
-          book: {
-            title: book.title,
-            borrowedDate: record.borrowedDate,
-            returnDate: record.returnDate ? "Returned" : "Not Returned",
-          },
-        });
-      }
     }
 
     res.status(200).json({
       message: "Borrow records retrieved successfully",
-      borrowRecords: result,
+      borrowRecords,
     });
   } catch (error) {
     res.status(500).json({
