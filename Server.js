@@ -24,6 +24,10 @@ app.use("/api", authRoutes);
 app.use("/api", bookRoutes);
 app.use("/api", borrowRoutes);
 
+app.get("/", (req, res) => {
+  res.send("API is working ✅");
+});
+
 app.listen(PORT, () => {
   console.log(` Server is running on port ${PORT}`);
 });
