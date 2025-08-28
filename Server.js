@@ -9,9 +9,9 @@ import cors from 'cors';
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.use(cors({
-  origin: ['http://localhost:3001'],
+  origin: ['https://librarynesthub.vercel.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
