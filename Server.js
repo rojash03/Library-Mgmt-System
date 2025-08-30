@@ -11,10 +11,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.use(cors({
-  origin: ['https://librarynesthub.vercel.app'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 connectDB();
 
